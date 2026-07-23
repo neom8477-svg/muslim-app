@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Discipline App</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    :root {
+      --card-bg: rgba(18, 22, 31, 0.92);
+      --accent-cyan: #00e5ff;
+      --accent-green: #00ff87;
+      --text-color: #f0f6fc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-image: url('bg.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      min-height: 100vh;
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text-color);
+    }
+
+    /* --- Переключатель вкладок --- */
+    .tabs-container {
+      display: flex;
+      background: rgba(22, 27, 34, 0.95);
+      padding: 4px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px 6px;
+      border: none;
+      background: transparent;
+      color: #8b949e;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: center;
+      outline: none;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #00b4db, #0083b0);
+      color: #ffffff;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* --- Основные категории --- */
+    .main-categories {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .main-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+    }
+
+    .main-card-title {
+      font-size: 17px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .main-card-subtitle {
+      font-size: 13px;
+      color: #8b949e;
+    }
+
+    .btn-open {
+      background: #00e5ff;
+      color: #07090e;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .btn-open:active {
+      transform: scale(0.95);
+    }
+
+    /* --- Секция привычек --- */
+    .section-title {
+      color: #8b949e;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .habits-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .habit-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+      transform: translateZ(0); /* Аппаратное ускорение */
+    }
+
+    .habit-card:active {
+      transform: scale(0.97) translateZ(0);
+    }
+
+    .habit-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .habit-icon {
+      font-size: 20px;
+    }
+
+    .habit-text {
+      color: var(--text-color);
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .custom-checkbox {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      border: 2px solid #30363d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .checkmark {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      color: #07090e;
+      stroke-dasharray: 24;
+      stroke-dashoffset: 24;
+      transition: stroke-dashoffset 0.2s ease;
+    }
+
+    .habit-card.completed {
+      background: rgba(0, 255, 135, 0.12);
+      border-color: rgba(0, 255, 135, 0.4);
+    }
+
+    .habit-card.completed .habit-text {
+      color: rgba(240, 246, 252, 0.45);
+      text-decoration: line-through;
+    }
+
+    .habit-card.completed .custom-checkbox {
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+      border-color: transparent;
+    }
+
+    .habit-card.completed .checkmark {
+      stroke-dashoffset: 0;
+    }
+
+    /* --- Стили вкладки Прогресс --- */
+    .progress-box {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 16px;
+      text-align: center;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 12px;
+      background: #161b22;
+      border-radius: 6px;
+      margin-top: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-green));
+      width: 0%;
+      border-radius: 6px;
+      transition: width 0.3s ease;
+    }
+
+    /* Недельная сетка дней */
+    .week-grid {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .week-day {
+      flex: 1;
+      background: rgba(22, 27, 34, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 10px 4px;
+      text-align: center;
+    }
+
+    .week-day.active-day {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.1);
+    }
+
+    .week-day-name {
+      font-size: 11px;
+      color: #8b949e;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .week-day-status {
+      font-size: 14px;
+    }
+
+    /* --- Стили для инструментов --- */
+    .tools-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .tool-box {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 16px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .tool-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .tasbih-count {
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      margin-bottom: 16px;
+    }
+
+    .tasbih-btn-main {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00b4db, #0083b0);
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      margin: 0 auto 16px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      outline: none;
+    }
+
+    .tasbih-btn-main:active {
+      transform: scale(0.92);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .stopwatch-display {
+      font-size: 38px;
+      font-weight: 700;
+      color: var(--accent-green);
+      margin-bottom: 16px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stopwatch-controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .btn-start { background: var(--accent-green); color: #07090e; }
+    .btn-stop { background: #ff5252; color: #fff; }
+    .btn-reset { background: rgba(255, 255, 255, 0.15); color: #fff; }
+
+    /* --- Модальные окна --- */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      z-index: 100;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .modal-content {
+      width: 100%;
+      max-width: 500px;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      padding: 24px;
+      background: #0d1117;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      transform: translateY(100%);
+      transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.active .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .btn-close {
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Вкладки -->
+  <div class="tabs-container">
+    <button class="tab-btn active" onclick="switchTab('discipline', this)">Дисциплина</button>
+    <button class="tab-btn" onclick="switchTab('progress', this)">Прогресс</button>
+    <button class="tab-btn" onclick="switchTab('tools', this)">Инструменты</button>
+  </div>
+
+  <!-- Вкладка Дисциплина -->
+  <div id="tab-discipline" class="tab-content active">
+    
+    <div class="main-categories">
+      <div class="main-card">
+        <div>
+          <div class="main-card-title">🕌 Пятикратный Намаз</div>
+          <div class="main-card-subtitle" id="namazSubtitle">0 из 5 выполнено</div>
+        </div>
+        <button class="btn-open" onclick="openModal('modal-namaz')">Открыть</button>
+      </div>
+
+      <div class="main-card">
+        <div>
+          <div class="main-card-title">💪 Тренировка</div>
+          <div class="main-card-subtitle" id="workoutSubtitle">0 из 4 выполнено</div>
+        </div>
+        <button class="btn-open" onclick="openModal('modal-workout')">Открыть</button>
+      </div>
+    </div>
+
+    <div class="habits-section">
+      <h3 class="section-title">Ежедневные привычки</h3>
+      
+      <div class="habits-list">
+        <div class="habit-card" onclick="toggleHabit(this)">
+          <div class="habit-info">
+            <span class="habit-icon">📚</span>
+            <span class="habit-text">Чтение книги (15 мин)</span>
+          </div>
+          <div class="custom-checkbox">
+            <svg viewBox="0 0 24 24" class="checkmark">
+              <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="habit-card" onclick="toggleHabit(this)">
+          <div class="habit-info">
+            <span class="habit-icon">💧</span>
+            <span class="habit-text">Пить воду (1.5 л)</span>
+          </div>
+          <div class="custom-checkbox">
+            <svg viewBox="0 0 24 24" class="checkmark">
+              <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="habit-card" onclick="toggleHabit(this)">
+          <div class="habit-info">
+            <span class="habit-icon">🇬🇧</span>
+            <span class="habit-text">Учить английский</span>
+          </div>
+          <div class="custom-checkbox">
+            <svg viewBox="0 0 24 24" class="checkmark">
+              <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Вкладка Прогресс -->
+  <div id="tab-progress" class="tab-content">
+    <div class="progress-box">
+      <h3 style="margin-bottom: 4px;">Ваш общий прогресс</h3>
+      <p style="color: #8b949e; font-size: 14px;" id="progressText">Выполнено 0 из 12 задач</p>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBarFill"></div>
+      </div>
+      <p style="margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--accent-cyan);" id="motivationStatus">День только начинается, вперед! 🔥</p>
+    </div>
+
+    <div class="habits-section" style="margin-bottom: 20px;">
+      <h3 class="section-title">Активность недели</h3>
+      <div class="week-grid" id="weekGrid"></div>
+    </div>
+
+    <div class="habits-section">
+      <h3 class="section-title">Статистика</h3>
+      <div class="main-card">
+        <div>🔥 Серия: <strong id="streakCount">1 день подряд</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Вкладка Инструменты -->
+  <div id="tab-tools" class="tab-content">
+    <div class="tools-grid">
+      
+      <div class="tool-box">
+        <div class="tool-title">📿 Цифровой Тасбих</div>
+        <div class="tasbih-count" id="tasbihDisplay">0</div>
+        <button class="tasbih-btn-main" onclick="incrementTasbih()">Нажми</button>
+        <button class="btn-secondary" onclick="resetTasbih()">Сбросить</button>
+      </div>
+
+      <div class="tool-box">
+        <div class="tool-title">⏱️ Секундомер активности</div>
+        <div class="stopwatch-display" id="stopwatchDisplay">00:00:00</div>
+        <div class="stopwatch-controls">
+          <button class="btn-action btn-start" onclick="startStopwatch()">Старт</button>
+          <button class="btn-action btn-stop" onclick="stopStopwatch()">Стоп</button>
+          <button class="btn-action btn-reset" onclick="resetStopwatch()">Сброс</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Модальное окно: НАМАЗ -->
+  <div id="modal-namaz" class="modal-overlay" onclick="closeModalOnOverlay(event, 'modal-namaz')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">🕌 Пятикратный Намаз</h2>
+        <button class="btn-close" onclick="closeModal('modal-namaz')">Закрыть</button>
+      </div>
+      <div class="habits-list">
+        <div class="habit-card" onclick="toggleHabit(this)"><span class="habit-text">1. Фаджр (Утренний)</span><div class="custom-checkbox"><svg viewBox="0 0 24 24" class="checkmark"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="habit-card" onclick="toggleHabit(this)"><span class="habit-text">2. Зухр (Полуденный)</span><div class="custom-checkbox"><svg viewBox="0 0 24 24" class="checkmark"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="habit-card" onclick="toggleHabit(this)"><span class="habit-text">3. Аср (Послеполуденный)</span><div class="custom-checkbox"><svg viewBox="0 0 24 24" class="checkmark"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="habit-card" onclick="toggleHabit(this)"><span class="habit-text">4. Магриб (Вечерний)</span><div class="custom-checkbox"><svg viewBox="0 0 24 24" class="checkmark"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="habit-card" onclick="toggleHabit(this)"><span class="habit-text">5. Иша (Ночной)</span><div class="custom-checkbox"><svg viewBox="0 0 24 24" class="checkmark"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: ТРЕНИРОВКА -->
+  <div id="modal-workout" class="modal-overlay" onclick="closeModalOnOverlay(event, 'modal-workout')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">💪 Тренировка</h2>
+        <button class="btn-close" onclick="closeModal('modal-workout')">Закрыть</button>
+      </div>
+      <div class="habits-list">
+        <div class="habit-card" onclick="toggleHabit(this)"><span class="habit-text">1. Разминка (5 мин)</span><div class="custom-checkbox"><svg viewBox="0 0 24 24" class="checkmark"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="habit-card" onclick="toggleHabit(this)"><span class="habit-text">2. Отжимания (3x15)</span><div class="custom-checkbox"><svg viewBox="0 0 24 24" class="checkmark"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="habit-card" onclick="toggleHabit(this)"><span class="habit-text">3. Приседания (3x20)</span><div class="custom-checkbox"><svg viewBox="0 0 24 24" class="checkmark"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+        <div class="habit-card" onclick="toggleHabit(this)"><span class="habit-text">4. Растяжка</span><div class="custom-checkbox"><svg viewBox="0 0 24 24" class="checkmark"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function checkNewDay() {
+      const today = new Date().toDateString();
+      const savedDate = localStorage.getItem('app_last_date');
+      if (savedDate !== today) {
+        localStorage.clear();
+        localStorage.setItem('app_last_date', today);
+      }
+    }
+    checkNewDay();
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedStates = JSON.parse(localStorage.getItem('habit_states') || '{}');
+      
+      document.querySelectorAll('.habit-card').forEach((card, index) => {
+        card.setAttribute('data-id', 'card_' + index);
+        if (savedStates['card_' + index]) {
+          card.classList.add('completed');
+        }
+      });
+
+      const savedTasbih = localStorage.getItem('tasbih_count') || '0';
+      document.getElementById('tasbihDisplay').innerText = savedTasbih;
+
+      updateProgressAndStats();
+      renderWeekDays();
+    });
+
+    function switchTab(tabName, btn) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      
+      document.getElementById('tab-' + tabName).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function closeModalOnOverlay(e, id) {
+      if (e.target === document.getElementById(id)) {
+        closeModal(id);
+      }
+    }
+
+    function toggleHabit(card) {
+      card.classList.toggle('completed');
+
+      const id = card.getAttribute('data-id');
+      const isCompleted = card.classList.contains('completed');
+      
+      let savedStates = JSON.parse(localStorage.getItem('habit_states') || '{}');
+      savedStates[id] = isCompleted;
+      localStorage.setItem('habit_states', JSON.stringify(savedStates));
+
+      updateProgressAndStats();
+    }
+
+    function updateProgressAndStats() {
+      const allCards = document.querySelectorAll('.habit-card');
+      const completedCards = document.querySelectorAll('.habit-card.completed');
+      
+      const total = allCards.length;
+      const completed = completedCards.length;
+      const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      document.getElementById('progressText').innerText = `Выполнено ${completed} из ${total} задач (${percentage}%)`;
+      document.getElementById('progressBarFill').style.width = `${percentage}%`;
+
+      let namazCount = 0;
+      for (let i = 3; i < 8; i++) {
+        if (allCards[i] && allCards[i].classList.contains('completed')) namazCount++;
+      }
+      document.getElementById('namazSubtitle').innerText = `${namazCount} из 5 выполнено`;
+
+      let workoutCount = 0;
+      for (let i = 8; i < 12; i++) {
+        if (allCards[i] && allCards[i].classList.contains('completed')) workoutCount++;
+      }
+      document.getElementById('workoutSubtitle').innerText = `${workoutCount} из 4 выполнено`;
+
+      const statusEl = document.getElementById('motivationStatus');
+      if (completed === 0) {
+        statusEl.innerText = "День только начинается, соберись! 🔥";
+      } else if (percentage < 50) {
+        statusEl.innerText = "Хороший старт, продолжай в том же духе! ⚡";
+      } else if (percentage < 100) {
+        statusEl.innerText = "Отличный темп, осталось совсем чуть-чуть! 🚀";
+      } else {
+        statusEl.innerText = "Красавчик! Все цели на сегодня закрыты! 🏆";
+      }
+    }
+
+    function renderWeekDays() {
+      const weekGrid = document.getElementById('weekGrid');
+      weekGrid.innerHTML = '';
+      
+      const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+      const currentDayIndex = (new Date().getDay() + 6) % 7;
+
+      days.forEach((day, index) => {
+        const dayDiv = document.createElement('div');
+        dayDiv.classList.add('week-day');
+        if (index === currentDayIndex) {
+          dayDiv.classList.add('active-day');
+        }
+
+        let icon = '•';
+        if (index < currentDayIndex) {
+          icon = '✅';
+        } else if (index === currentDayIndex) {
+          icon = '⏳';
+        }
+
+        dayDiv.innerHTML = `
+          <div class="week-day-name">${day}</div>
+          <div class="week-day-status">${icon}</div>
+        `;
+        weekGrid.appendChild(dayDiv);
+      });
+    }
+
+    function incrementTasbih() {
+      const display = document.getElementById('tasbihDisplay');
+      let count = parseInt(display.innerText) + 1;
+      display.innerText = count;
+      localStorage.setItem('tasbih_count', count);
+    }
+
+    function resetTasbih() {
+      const display = document.getElementById('tasbihDisplay');
+      display.innerText = '0';
+      localStorage.setItem('tasbih_count', '0');
+    }
+
+    let stopwatchInterval = null;
+    let secondsElapsed = 0;
+
+    function updateStopwatchDisplay() {
+      const hrs = String(Math.floor(secondsElapsed / 3600)).padStart(2, '0');
+      const mins = String(Math.floor((secondsElapsed % 3600) / 60)).padStart(2, '0');
+      const secs = String(secondsElapsed % 60).padStart(2, '0');
+      document.getElementById('stopwatchDisplay').innerText = `${hrs}:${mins}:${secs}`;
+    }
+
+    function startStopwatch() {
+      if (!stopwatchInterval) {
+        stopwatchInterval = setInterval(() => {
+          secondsElapsed++;
+          updateStopwatchDisplay();
+        }, 1000);
+      }
+    }
+
+    function stopStopwatch() {
+      clearInterval(stopwatchInterval);
+      stopwatchInterval = null;
+    }
+
+    function resetStopwatch() {
+      stopStopwatch();
+      secondsElapsed = 0;
+      updateStopwatchDisplay();
+    }
+  </script>
+</body>
+</html>
