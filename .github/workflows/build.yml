@@ -25,11 +25,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install Capacitor CLI and add Android
-        run: |
-          npm install --save-dev @capacitor/cli @capacitor/android
-          npx cap add android
-
       - name: Build Android project
         run: |
           cd android
